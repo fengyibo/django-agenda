@@ -4,8 +4,8 @@ from django.http import *
 
 import datetime
 import json
-from citas.control.models import *
-from citas.control.forms import *
+from models import *
+from forms import *
 
 fecha = datetime.datetime.now()
 

@@ -1,6 +1,6 @@
 from django import forms as forms
 from django.forms.extras.widgets import *
-from citas.control.models import *
+from models import *
 
 class EditForm(forms.ModelForm):       
     class Meta:
