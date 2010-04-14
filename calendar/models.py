@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Citas(models.Model):
     cliente = models.CharField(max_length=200, verbose_name = 'Cliente')
@@ -13,3 +14,8 @@ class Citas(models.Model):
     class Meta:
         verbose_name = 'Control de Citas'
         verbose_name_plural = 'Control de Citas'
+
+class Calendar(models.Model):
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(User)
+    public = models.BooleanField(default=False)
