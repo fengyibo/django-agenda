@@ -30,3 +30,18 @@ class Event(models.Model):
     class Meta:
         verbose_name = _('event')
         verbose_name_plural = _('events')
+
+
+class SharedEvent(models.Model):
+    '''Intermediate model to share events'''
+    event = models.ForeignKey(Event)
+    participant = models.ForeignKey(User)
+    attending = models.BooleandField(default=True)
+
+    def __unicode__(self):
+        return '%s - %s - %s' % (self.event.title, 
+                self.participant, self.attending)
+
+    class Meta:
+        verbose_name = _('shared event')
+        verbose_name_plural = _('shared event')

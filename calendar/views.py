@@ -1,6 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import *
+from django.http import HttpResponse
+from django.utils.translation import ugettext as _
 
 import datetime
 import json
@@ -45,28 +46,31 @@ def editar(request, id):
         form = EditForm(instance=cita)        
     return render_to_response('agregarEditar.html', RequestContext(request, locals()))
 
-def nueva_cita(request):
-    boton = 'cancelar'        
-    if request.method == 'POST':
-        form = EditForm(request.POST)
-        if form.is_valid():            
-            form.save()
-            return HttpResponse('OK')        
-    else:
-        form = EditForm()        
-    return render_to_response('agregarEditar.html', RequestContext(request, locals()))
+def create_event(request, calendar_id):
+    '''Create event view.
+       by default it will check if the user 
+       can create an event'''
+       button_text = _('Cancel')
+       if request.method == 'POST':
+           form = EditForm(request.POST)
+           if form.is_valid():
+               event = form.save(commit=False)
+               event.calendar = get_object_or_404(Calendar = calendar_id) 
+               event.save()
+               return HttpResponse('OK')
+           else:
+               return HttpResponse('OMFG')
+       else:
+           form = EditForm()
+           return render_to_response('create_edit.html', {'button_text': button_text})
 
-def borrar(request):    
+def delete_event(request, id):
+    '''Delete an event'''
+    #TODO: checar permisos
     if request.is_ajax():
-        id = request.POST['id']
-        cita = Citas.objects.get(id=id)
-        cita.delete()
-        return HttpResponse('Cita eliminada')      
-    else:
-        return HttpResponse('ERROR')
-    
-    return HttpResponse('ERROR') 
-
+        event = get_object_or_404(Event, id=id)
+        event.delete()
+        return HttpResponse('deleted')
 
 def cambiar_fechas(request):    
     if request.is_ajax():
