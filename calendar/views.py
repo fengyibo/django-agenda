@@ -33,6 +33,9 @@ def ver_dia(request):
     
     return render_to_response('ver_dia.html', RequestContext(request, locals()))
 
+def view_date(request, calendar_id):
+    
+
 def editar(request, id):
     boton = 'eliminar'
     cita = Citas.objects.get(id=id)

@@ -7,6 +7,14 @@ class Calendar(models.Model):
     owner = models.ForeignKey(User)
     public = models.BooleanField(default=False)
 
+    def get_events(self, start, end):
+        return Event.objects.filter(start__gt = start, 
+                end__lt = end, calendar = self)
+
+    def get_shared_events(self, start, end):
+        return SharedEvent.objects.filter(start__gt = start, 
+                end__lt = end, participant = self.owner)
+
     class Meta:
         verbose_name = _('calendar')
 
@@ -31,7 +39,6 @@ class Event(models.Model):
         verbose_name = _('event')
         verbose_name_plural = _('events')
 
-
 class SharedEvent(models.Model):
     '''Intermediate model to share events'''
     event = models.ForeignKey(Event)
@@ -41,6 +48,9 @@ class SharedEvent(models.Model):
     def __unicode__(self):
         return '%s - %s - %s' % (self.event.title, 
                 self.participant, self.attending)
+
+    def get_absolute_url(self):
+        pass
 
     class Meta:
         verbose_name = _('shared event')
