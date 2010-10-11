@@ -1,3 +1,4 @@
 *.pyc
 *.swp
+base.db
 settings_local.py
