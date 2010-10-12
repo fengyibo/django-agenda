@@ -47,7 +47,8 @@ class Event(models.Model):
                 'end': time.mktime(self.end.timetuple()),
                 'created_on': time.mktime(self.created_on.timetuple()),
                 'owner': self.owner.username,
-                'agenda': self.agenda.id
+                'agenda': self.agenda.id,
+                'shared': False,
                 }
         return simplejson.dumps(dicc)
 
@@ -70,6 +71,22 @@ class SharedEvent(models.Model):
 
     def get_absolute_url(self):
         pass
+
+    def to_json(self):
+        dicc = {
+                'id': self.event.id,
+                'title': self.event.title,
+                'description': self.event.description,
+                'start': time.mktime(self.event.start.timetuple()),
+                'end': time.mktime(self.event.end.timetuple()),
+                'created_on': time.mktime(self.event.created_on.timetuple()),
+                'owner': self.event.owner.username,
+                'agenda': self.event.agenda.id,
+                'shared': True,
+                'attending': self.attending,
+                'new_event': self.new_event
+                }
+        return simplejson.dumps(dicc)
 
     def unflag(self):
         self.new_event = False

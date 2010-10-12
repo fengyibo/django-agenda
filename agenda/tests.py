@@ -40,6 +40,7 @@ class EventTest(TestCase):
         json['end'] = time.mktime(end.timetuple())
         json['owner'] = user.username
         json['agenda'] = agenda.id
+        json['shared'] = False
         json['id'] = None
         
         
