@@ -38,7 +38,7 @@ class Event(models.Model):
     def __unicode__(self):
         return self.title
     
-    def to_json(self):
+    def to_dict(self):
         dicc = {
                 'id': self.id,
                 'title': self.title,
@@ -50,7 +50,10 @@ class Event(models.Model):
                 'agenda': self.agenda.id,
                 'shared': False,
                 }
-        return simplejson.dumps(dicc)
+        return dicc
+
+    def to_json(self):
+        return simplejson.dumps(self.to_dict())
 
     class Meta:
         verbose_name = _('event')
@@ -72,7 +75,7 @@ class SharedEvent(models.Model):
     def get_absolute_url(self):
         pass
 
-    def to_json(self):
+    def to_dict(self):
         dicc = {
                 'id': self.event.id,
                 'title': self.event.title,
@@ -86,7 +89,10 @@ class SharedEvent(models.Model):
                 'attending': self.attending,
                 'new_event': self.new_event
                 }
-        return simplejson.dumps(dicc)
+        return dicc
+
+    def to_json(self):
+        return simplejson.dumps(self.to_dict())
 
     def unflag(self):
         self.new_event = False

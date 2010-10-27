@@ -4,5 +4,5 @@ from models import *
 
 class EditForm(forms.ModelForm):       
     class Meta:
-        model = Citas        
+        model = Event 
  
