@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.utils.translation import ugettext as _
@@ -16,12 +16,12 @@ def view_date(request, agenda_id):
         start = datetime.datetime.fromtimestamp(float(request.GET['start']))
         end = datetime.datetime.fromtimestamp(float(request.GET['end']))
 
-        agenda = get_object_or_404(agenda, id=id) 
+        agenda = get_object_or_404(Agenda, pk=agenda_id) 
         eventos = []
-        for event in agenda.get_events():
+        for event in agenda.get_events(start, end):
             eventos.append(event.to_dict())
 
-        for event in agenda.get_shared_events():
+        for event in agenda.get_shared_events(start, end):
             eventos.append(event.to_dict())
         
         return HttpResponse(simplejson.dumps(eventos), mimetype='application/json')

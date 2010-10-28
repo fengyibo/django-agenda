@@ -15,8 +15,11 @@ class Agenda(models.Model):
                 end__lt = end, agenda = self)
 
     def get_shared_events(self, start, end):
-        return SharedEvent.objects.filter(start__gt = start, 
-                end__lt = end, participant = self.owner)
+        return SharedEvent.objects.filter(event__start__gt = start, 
+                event__end__lt = end, participant = self.owner)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.name, self.owner.username)
 
     class Meta:
         verbose_name = _('agenda')

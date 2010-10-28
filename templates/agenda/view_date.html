@@ -2,9 +2,8 @@
 <html>
 <head>
 <link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}css/fullcalendar.css' />
-<script type='text/javascript' src='{{MEDIA_URL}}js/fullcalendar.min.js'></script>
 <script type='text/javascript' src='{{MEDIA_URL}}js/jquery-1.4.3.min.js'></script>
-<script type='text/javascript' src='{{MEDIA_URL}}js/jquery-ui-1.8.5.custom.min.js'></script>
+<script type='text/javascript' src='{{MEDIA_URL}}js/fullcalendar.min.js'></script>
 <script type='text/javascript'>
 	$(document).ready(function() {
 		var date = new Date();
@@ -23,87 +22,17 @@
 			monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
 			monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
       contentHeight: 470,
-      
-
 			header: {
 				left: 'prev,next today',
 				center: 'title',
 				right: 'month,agendaWeek,agendaDay'
 			},
-			
-			eventClick: function(calEvent, jsEvent, view) {
-        $('#modal-content').attr({'src':'/editar/'+calEvent.id+'/'});
-        agregarEditar();
-        $(this).css('border-color', 'red');
-      },
-      dayClick: function(date, allDay, jsEvent, view) {
-        $('#modal-content').attr({'src':'/agregar/'});
-        agregarEditar();
-      },
-      eventDrop: function(event,dayDelta,minuteDelta,allDay,revertFunc) {
-        if (!confirm("Desea realizar esos cambios?")) {
-            revertFunc();
-        }else{            
-            cambiar_fechas(event, dayDelta);
-        }
-      },
-      eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
-        if (!confirm("Desea realizar esos cambios?")) {
-            revertFunc();
-        }
-        else{            
-            cambiar_fechas(event, dayDelta);
-        }
-      },
 			editable: true,
-			events: '/agenda/agenda/1/',		
+			events: window.location.href,		
 			
 		});	
 		
 	});
-	function cambiar_fechas(event, dayDelta){
-	  $.post('/cambiar_fechas/',{
-	    id: event.id,
-	    start: event.start.getHours()+':'+event.start.getMinutes(),
-			end: event.end.getHours()+':'+event.end.getMinutes(),
-			fecha: event.start.getFullYear()+'-'+(event.start.getMonth()+1)+'-'+event.start.getDate(),
-	  },	    	
-    function(data) {				
-		  if (data != "ERROR") {        			        
-        //top.location.href = '/';
-      }      
-		});
-	} 
-	function agregarEditar(){
-	   $('#modal-content').modal(
-			{
-				opacity:60,
-				onOpen: function (dialog) {
-					dialog.overlay.fadeIn('slow', function () {
-						dialog.data.hide();
-						dialog.container.fadeIn('slow', function () {
-							dialog.data.slideDown('slow');
-						});
-					});
-				},
-				containerCss:{
-					height:280,
-					width:450,
-				},
-				onClose: function (dialog) {
-					dialog.data.fadeOut('slow', function () {
-						dialog.container.hide('slow', function () {
-							dialog.overlay.slideUp('slow', function () {
-								$.modal.close();
-							});
-						});
-					});
-				}
-			}
-		);
-  }
-	
-
 </script>
 <style type='text/css'>
 
@@ -123,11 +52,5 @@
 </head>
 <body>
 <div id='calendar'></div>
-<iframe style="display: none;" id="modal-content" src=""
-	width="450px"
-	height="280px"
-	scrolling="no"
-	frameborder="0">
-</iframe>
 </body>
 </html>
