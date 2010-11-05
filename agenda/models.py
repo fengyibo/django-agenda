@@ -105,3 +105,29 @@ class SharedEvent(models.Model):
     class Meta:
         verbose_name = _('shared event')
         verbose_name_plural = _('shared event')
+
+class EventInvite(models.Model):
+    '''This is the invite to a event'''
+    from_user = ForeignKey(User)
+    to_user = ForeignKey(User)
+    event = ForeignKey(Event)
+    date_created = models.DateTimeField(auto_now_add = True) 
+
+    def __unicode__(self):
+        return "%s invitoa % para el evento %s" % (self.from_user.username, 
+                self.to_user.username, self.event.title) 
+
+   def clean(self):
+       '''Does not allows that from user is the same to user'''
+       from django.core.exceptions import ValidationError
+       if self.from_user == self.to_user:
+           raise ValidationError('You can not invite yourself')
+       elif self.event.owner != self.from_user:
+           raise ValidationError('You must be the event owner to invite someone')
+
+    def save(self, *args, **kwargs):
+        pass
+
+    class Meta:
+        verbose_name = _('Event Invite')
+        verbose_name_plural = _('Event Invites')
