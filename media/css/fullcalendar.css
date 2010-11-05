@@ -260,6 +260,16 @@ table.fc-header {
 	 *     color: red;
 	 *     }
 	 */
+
+/*Hack para eventos shared en otro color*/
+
+.fc-event,
+.fc-agenda .fc-shared-event .fc-event-time,
+.fc-shared-event a {
+    background-color: black;
+    color: red;
+	border-style: solid; 
+}
 	 
 .fc-event {
 	text-align: left;

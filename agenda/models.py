@@ -90,7 +90,8 @@ class SharedEvent(models.Model):
                 'agenda': self.event.agenda.id,
                 'shared': True,
                 'attending': self.attending,
-                'new_event': self.new_event
+                'new_event': self.new_event,
+                'className': 'fc-shared-event',
                 }
         return dicc
 
