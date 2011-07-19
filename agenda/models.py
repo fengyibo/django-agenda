@@ -2,24 +2,43 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 from django.utils import simplejson
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
+from managers import AgendaManager, EventManager
+
 import datetime
-import time
+import time 
+
+STATUS_CHOICES = (('1', _('Public')), 
+                  ('2', _('Registered Users')), 
+                  ('3', _('Restricted')), 
+                  ('4', _('Private')))
 
 class Agenda(models.Model):
     name = models.CharField(max_length=100)
-    owner = models.ForeignKey(User)
     public = models.BooleanField(default=False)
+
+    objects = AgendaManager()
+    
+    #any model can have it's on agenda that's the owner
+    content_type = models.ForeignKey(ContentType)
+    object_id = models.PositiveIntegerField()
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
 
     def get_events(self, start, end):
         return Event.objects.filter(start__gt = start, 
                 end__lt = end, agenda = self)
 
-    def get_shared_events(self, start, end):
+    def get_shared_events(self, start, end, user):
         return SharedEvent.objects.filter(event__start__gt = start, 
-                event__end__lt = end, participant = self.owner)
+                event__end__lt = end, participant__username = user)
+
+    def is_owner(self, owner):
+        owner_content_type = ContentType.objects.get_for_model(owner)
+        return self.content_type.id == owner_content_type.id and self.object_id == owner.id
 
     def __unicode__(self):
-        return '%s - %s' % (self.name, self.owner.username)
+        return '%s' % (self.name)
 
     class Meta:
         verbose_name = _('agenda')
@@ -32,11 +51,39 @@ class Event(models.Model):
     start = models.DateTimeField(_('start'), default=datetime.datetime.now())
     end = models.DateTimeField(_('end'))
     created_on = models.DateTimeField(_('created_on'), auto_now = True)
-    owner = models.ForeignKey(User)
     agenda = models.ForeignKey(Agenda)
+    status = models.CharField(_('status'), choices = STATUS_CHOICES, 
+                              max_length=1,
+                              help_text=_('''Public - visible for everyone, 
+                              Registered Users: visible for registered users, 
+                              Restricted: visible just for invited people, 
+                              Private: visible just for you'''))
+
+    objects = EventManager()
+
+    def can_be_viewed(self, user):
+        '''checks if a user can view a event'''
+        if user.is_authenticated():
+            if self.status == '4': #private
+                return self.agenda.is_owner(user)
+            elif self.status == '3': #invited only
+                return self.is_invited(user)
+            elif self.status <= '2': #registered and public
+                pass
+                return True
+            else:
+                return False
+        else:
+            return self.status == '1'
 
     def get_absolute_url(self):
         pass
+
+    def is_invited(self, user):
+        if EventInvite.objects.get(to_user = user, event = self):
+            return True
+        else:
+            return False
 
     def __unicode__(self):
         return self.title
@@ -49,7 +96,6 @@ class Event(models.Model):
                 'start': time.mktime(self.start.timetuple()),
                 'end': time.mktime(self.end.timetuple()),
                 'created_on': time.mktime(self.created_on.timetuple()),
-                'owner': self.owner.username,
                 'agenda': self.agenda.id,
                 'shared': False,
                 }
@@ -61,6 +107,7 @@ class Event(models.Model):
     class Meta:
         verbose_name = _('event')
         verbose_name_plural = _('events')
+        ordering = ('-start',)
 
 class SharedEvent(models.Model):
     '''Intermediate model to share events
@@ -86,7 +133,6 @@ class SharedEvent(models.Model):
                 'start': time.mktime(self.event.start.timetuple()),
                 'end': time.mktime(self.event.end.timetuple()),
                 'created_on': time.mktime(self.event.created_on.timetuple()),
-                'owner': self.event.owner.username,
                 'agenda': self.event.agenda.id,
                 'shared': True,
                 'attending': self.attending,
@@ -101,33 +147,32 @@ class SharedEvent(models.Model):
     def unflag(self):
         self.new_event = False
 
-
     class Meta:
         verbose_name = _('shared event')
         verbose_name_plural = _('shared event')
 
 class EventInvite(models.Model):
     '''This is the invite to a event'''
-    from_user = ForeignKey(User)
-    to_user = ForeignKey(User)
-    event = ForeignKey(Event)
+    from_user = models.ForeignKey(User)
+    to_user = models.ForeignKey(User, related_name = 'to_user')
+    event = models.ForeignKey(Event)
     date_created = models.DateTimeField(auto_now_add = True) 
 
     def __unicode__(self):
-        return "%s invitoa % para el evento %s" % (self.from_user.username, 
-                self.to_user.username, self.event.title) 
+        return _("%s invito %s para el evento %s" % (self.from_user.username, 
+                self.to_user.username, self.event.title)) 
 
-   def clean(self):
+    def clean(self):
        '''Does not allows that from user is the same to user'''
        from django.core.exceptions import ValidationError
        if self.from_user == self.to_user:
            raise ValidationError('You can not invite yourself')
-       elif self.event.owner != self.from_user:
-           raise ValidationError('You must be the event owner to invite someone')
 
     def save(self, *args, **kwargs):
-        pass
+        super(EventInvite, self).save(*args, **kwargs)
+        SharedEvent(event = self.event, participant = self.to_user).save()
 
     class Meta:
         verbose_name = _('Event Invite')
         verbose_name_plural = _('Event Invites')
+        unique_together = ('event', 'to_user')

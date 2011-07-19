@@ -1,6 +1,6 @@
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.utils.translation import ugettext as _
 from django.utils import simplejson
 
@@ -8,9 +8,22 @@ import datetime
 from models import *
 from forms import *
 
-fecha = datetime.datetime.now()
+def create_agenda(request):
+    form = AgendaForm()
+    return render_to_response('agenda/create_agenda.html', 
+            context_instance = RequestContext(request))
+
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    if event.can_be_viewed(request.user) or event.status == '1':
+        return render_to_response('agenda/event_detail.html',
+                {'event': event},
+                context_instance = RequestContext(request))
+    else:
+        raise Http404
 
 def view_date(request, agenda_id):
+    '''used for calendar view'''
 
     if request.is_ajax():
         start = datetime.datetime.fromtimestamp(float(request.GET['start']))
@@ -21,62 +34,56 @@ def view_date(request, agenda_id):
         for event in agenda.get_events(start, end):
             eventos.append(event.to_dict())
 
-        for event in agenda.get_shared_events(start, end):
+        for event in agenda.get_shared_events(start, end, request.user.username):
             eventos.append(event.to_dict())
         
         return HttpResponse(simplejson.dumps(eventos), mimetype='application/json')
-    return render_to_response('agenda/view_date.html', RequestContext(request))
-
-def editar(request, id):
-    boton = 'eliminar'
-    cita = Citas.objects.get(id=id)
-    form = EditForm(instance=cita)
-    if request.method == 'POST':
-        form = EditForm(data=request.POST, instance=cita)
-        if form.is_valid():            
-            form.save()
-            return HttpResponse('OK')        
     else:
-        form = EditForm(instance=cita)        
-    return render_to_response('agregarEditar.html', RequestContext(request, locals()))
+        return render_to_response('agenda/view_date.html', context_instance = RequestContext(request))
 
 def create_event(request, agenda_id):
     '''Create event view.
        by default it will check if the user 
        can create an event'''
-    button_text = _('Cancel')
     if request.method == 'POST':
+       agenda = get_object_or_404(Agenda = agenda_id)
        form = EditForm(request.POST)
-       if form.is_valid():
+       if form.is_valid() and agenda.is_owner(request.user):
            event = form.save(commit=False)
-           event.agenda= get_object_or_404(Agenda = agenda_id) 
+           event.agenda = agenda
            event.save()
-           return HttpResponse('OK')
+           return redirect('agenda_view_date', agenda_id = agenda_id)
        else:
-           return HttpResponse('OMFG')
+           error_message = _('can not create event if you are not the owner of the agenda')
+           return render_to_response('create_edit.html', {'form': form})
     else:
        form = EditForm()
-       return render_to_response('create_edit.html', {'button_text': button_text})
+       return render_to_response('create_edit.html', {'form': form}, 
+               context_instance=RequestContext(request))
 
 def delete_event(request, id):
     '''Delete an event'''
     #TODO: checar permisos
-    if request.is_ajax():
-        event = get_object_or_404(Event, id=id)
-        event.delete()
-        return HttpResponse('deleted')
+    event = get_object_or_404(Event, id=id)
+    if request.user.is_authenticated() and event.agenda.is_owner(request.user):
+        if request.is_ajax():
+            event.delete()
+            return HttpResponse('deleted')
+        else:
+            event.delete()
+            #redirect a algun lado
+    else:
+        raise Http404
 
-def cambiar_fechas(request):    
+def cambiar_fechas(request):
     if request.is_ajax():
         id = request.POST['id']
         cita = Citas.objects.get(id=id)
         cita.hora_ini = request.POST['start']
         cita.hora_fin = request.POST['end']
         cita.fecha = request.POST['fecha']
-        cita.save()        
+        cita.save()
         return HttpResponse('Cambios realizados')
-      
     else:
         return HttpResponse('ERROR')
-    
-    return HttpResponse('ERROR')        
+    return HttpResponse('ERROR')
