@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, Http404
 from django.utils.translation import ugettext as _
 from django.utils import simplejson
+from django.contrib.admin.views.decorators import staff_member_required
 
 import datetime
 from models import *
@@ -75,15 +76,12 @@ def delete_event(request, id):
     else:
         raise Http404
 
-def cambiar_fechas(request):
-    if request.is_ajax():
-        id = request.POST['id']
-        cita = Citas.objects.get(id=id)
-        cita.hora_ini = request.POST['start']
-        cita.hora_fin = request.POST['end']
-        cita.fecha = request.POST['fecha']
-        cita.save()
-        return HttpResponse('Cambios realizados')
-    else:
-        return HttpResponse('ERROR')
-    return HttpResponse('ERROR')
+@staff_member_required
+def admin_update(request, content_type_id):
+    content_type = get_object_or_404(ContentType, id= content_type_id)
+    model = content_type.model_class()
+    results = []
+    for instance in models.objects.all():
+        results.append((instance.id, instance.__unicode__()))
+
+    return HttpResponse(simplejson.dumps(results), mimetype='application/json')
