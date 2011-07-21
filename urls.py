@@ -11,8 +11,3 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'^agenda/', include('agenda.urls')),
 )
-if settings.DEBUG:
-        urlpatterns += patterns('',
-            (r'^archivo/(.*)$', 'django.views.static.serve',
-                 {'document_root': os_path.join(settings.MEDIA_ROOT)}),
-            )

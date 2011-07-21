@@ -81,7 +81,7 @@ def admin_update(request, content_type_id):
     content_type = get_object_or_404(ContentType, id= content_type_id)
     model = content_type.model_class()
     results = []
-    for instance in models.objects.all():
+    for instance in model.objects.all():
         results.append((instance.id, instance.__unicode__()))
 
     return HttpResponse(simplejson.dumps(results), mimetype='application/json')
