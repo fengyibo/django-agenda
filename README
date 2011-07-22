@@ -1,0 +1,32 @@
+Django Agenda.
+
+The best posible agenda aplication for Django ever!
+
+===Status===
+
+* Working for a 0.1 release soon!
+
+
+===Features===
+* Calendar style events
+* Shared Events
+* Multiple Agendas
+* Agenda can be related with almost _any_ model in your django app.
+* All the dependencies and static files inlcuded.
+* Django >= 1.3 (but can be set on Django < 1.3 with some work) 
+
+
+===Install===
+TODO: 
+* Python setup.py install
+* Add agenda to your INSTALLED_APPS
+* Include the urls.
+* Collect static media: python manage.py collectstatic
+* Have fun!
+
+===Authors===
+
+Adolfo Jurgen Fitoria Escobar<adolfo@fitoria.net>
+Inspired by a former project by: Helmy Giacoman
+
+Using: jquery fullcalendar plugin.
