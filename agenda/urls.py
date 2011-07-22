@@ -5,6 +5,9 @@ from models import *
 urlpatterns = patterns('agenda.views',
     url(r'^agenda/(?P<agenda_id>\d+)/$', 'view_date', name='agenda_view_date'),
     url(r'^event/(?P<event_id>\d+)/$', 'event_detail', name='agenda_event_detail'),
-    #url(r'^agenda/(?P<agenda_id>\d+)/create-event/$', 'create_agenda', name='agenda_create_event'),
-    #url(r'^agenda/new/$', 'create_event', name='agenda_create_event'),
+    url(r'^event/(?P<event_id>\d+)/delete/$', 'delete_event', name='agenda_event_delete'),
+    url(r'^event/(?P<event_id>\d+)/edit/$', 'edit_event', name='agenda_event_edit'),
+    url(r'^event/(?P<event_id>\d+)/share/$', 'share_event', name='agenda_event_share'),
+    url(r'^event/event/inbox/$', 'event_inbox', name='agenda_event_inbox'),
+    url(r'^agenda/(?P<agenda_id>\d+)/new/$', 'create_event', name='agenda_event_create'),
 )

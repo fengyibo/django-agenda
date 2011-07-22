@@ -105,3 +105,6 @@ LOGGING = {
         },
     }
 }
+
+#format: app_label.model
+AGENDA_AUTHORIZED_MODELS = ['auth.user', 'sites.site']

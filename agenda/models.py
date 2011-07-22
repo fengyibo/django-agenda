@@ -30,8 +30,8 @@ class Agenda(models.Model):
                 end__lt = end, agenda = self)
 
     def get_shared_events(self, start, end, user):
-        return SharedEvent.objects.filter(event__start__gt = start, 
-                event__end__lt = end, participant__username = user)
+        return EventInvite.objects.filter(event__start__gt = start, 
+                event__end__lt = end, to_user__username = user)
 
     def is_owner(self, owner):
         owner_content_type = ContentType.objects.get_for_model(owner)
@@ -69,7 +69,6 @@ class Event(models.Model):
             elif self.status == '3': #invited only
                 return self.is_invited(user)
             elif self.status <= '2': #registered and public
-                pass
                 return True
             else:
                 return False
@@ -109,21 +108,70 @@ class Event(models.Model):
         verbose_name_plural = _('events')
         ordering = ('-start',)
 
-class SharedEvent(models.Model):
-    '''Intermediate model to share events
-       the new_event field is used as flag for 
-       notifications'''
+#class SharedEvent(models.Model):
+#    '''Intermediate model to share events
+#       the new_event field is used as flag for 
+#       notifications'''
+#    event = models.ForeignKey(Event)
+#    participant = models.ForeignKey(User)
+#    attending = models.BooleanField(default=False)
+#    new_event = models.BooleanField(default=True)
+#
+#    def __unicode__(self):
+#        return '%s - %s - %s' % (self.event.title, 
+#                self.participant, self.attending)
+#
+#    def get_absolute_url(self):
+#        pass
+#
+#    def to_dict(self):
+#        dicc = {
+#                'id': self.event.id,
+#                'title': self.event.title,
+#                'description': self.event.description,
+#                'start': time.mktime(self.event.start.timetuple()),
+#                'end': time.mktime(self.event.end.timetuple()),
+#                'created_on': time.mktime(self.event.created_on.timetuple()),
+#                'agenda': self.event.agenda.id,
+#                'shared': True,
+#                'attending': self.attending,
+#                'new_event': self.new_event,
+#                'className': 'fc-shared-event',
+#                }
+#        return dicc
+#
+#    def to_json(self):
+#        return simplejson.dumps(self.to_dict())
+#
+#    def unflag(self):
+#        self.new_event = False
+#
+#    class Meta:
+#        verbose_name = _('shared event')
+#        verbose_name_plural = _('shared event')
+
+class EventInvite(models.Model):
+    '''This is the invite to a event'''
+    from_user = models.ForeignKey(User)
+    to_user = models.ForeignKey(User, related_name = 'to_user')
     event = models.ForeignKey(Event)
-    participant = models.ForeignKey(User)
-    attending = models.BooleanField(default=True)
+    date_created = models.DateTimeField(auto_now_add = True) 
+
+    attending = models.BooleanField(default=False)
     new_event = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return '%s - %s - %s' % (self.event.title, 
-                self.participant, self.attending)
+        return _("%s invito %s para el evento %s" % (self.from_user.username, 
+                self.to_user.username, self.event.title)) 
 
-    def get_absolute_url(self):
-        pass
+    def clean(self):
+       '''Does not allows that from user is the same to user'''
+       from django.core.exceptions import ValidationError
+       if self.from_user == self.to_user:
+           raise ValidationError('You can not invite yourself')
+
+    def save(self, *args, **kwargs):
+        super(EventInvite, self).save(*args, **kwargs)
 
     def to_dict(self):
         dicc = {
@@ -148,31 +196,7 @@ class SharedEvent(models.Model):
         self.new_event = False
 
     class Meta:
-        verbose_name = _('shared event')
-        verbose_name_plural = _('shared event')
-
-class EventInvite(models.Model):
-    '''This is the invite to a event'''
-    from_user = models.ForeignKey(User)
-    to_user = models.ForeignKey(User, related_name = 'to_user')
-    event = models.ForeignKey(Event)
-    date_created = models.DateTimeField(auto_now_add = True) 
-
-    def __unicode__(self):
-        return _("%s invito %s para el evento %s" % (self.from_user.username, 
-                self.to_user.username, self.event.title)) 
-
-    def clean(self):
-       '''Does not allows that from user is the same to user'''
-       from django.core.exceptions import ValidationError
-       if self.from_user == self.to_user:
-           raise ValidationError('You can not invite yourself')
-
-    def save(self, *args, **kwargs):
-        super(EventInvite, self).save(*args, **kwargs)
-        SharedEvent(event = self.event, participant = self.to_user).save()
-
-    class Meta:
         verbose_name = _('Event Invite')
         verbose_name_plural = _('Event Invites')
         unique_together = ('event', 'to_user')
+        ordering = ['-date_created', 'new_event']

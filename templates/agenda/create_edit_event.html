@@ -1,0 +1,11 @@
+{%extends "base.html"%}
+{% load i18n %}
+{%block content%}
+{%trans "Create Event"%}
+{{error_message}}
+<form method="POST" action=".">
+  {% csrf_token %}
+  {{form.as_p}}
+  <input type="submit" value="{%trans "create"%}"/>
+</form>
+{%endblock%}

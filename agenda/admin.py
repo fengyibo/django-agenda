@@ -24,5 +24,5 @@ class AgendaAdmin(admin.ModelAdmin):
 
 admin.site.register(Event)
 admin.site.register(Agenda, AgendaAdmin)
-admin.site.register(SharedEvent)
+#admin.site.register(SharedEvent)
 admin.site.register(EventInvite)
