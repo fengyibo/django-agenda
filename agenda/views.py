@@ -119,6 +119,16 @@ def event_inbox(request):
     return render_to_response('agenda/share_event.html', 
                               {'form': form, 'event': event},
                               context_instance=RequestContext(request))
+@login_required
+def mark_as_read(request, invite_id):
+    invite = get_object_or_404(EventInvite, pk = invite_id)
+    if invite.to_user == request.user:
+        invite.unflag()
+        invite.save()
+        return HttpResponse('ok')
+    else:
+        return HttpResponse('fail')
+
 
 @login_required
 def delete_event(request, event_id):
