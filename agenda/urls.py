@@ -2,7 +2,7 @@ from django.conf.urls.defaults import url
 from django.conf.urls.defaults import patterns 
 from django.conf import settings
 
-urlpatterns = patterns('apps.contrib.agenda.views',
+urlpatterns = patterns('agenda.views',
     url(r'^agenda/(?P<agenda_id>\d+)/$', 'view_date', name='agenda_view_date'),
     url(r'^event/(?P<event_id>\d+)/$', 'event_detail', name='agenda_event_detail'),
     url(r'^event/(?P<event_id>\d+)/delete/$', 'delete_event', name='agenda_event_delete'),
