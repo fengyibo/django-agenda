@@ -4,26 +4,27 @@ from django.utils.translation import ugettext as _
 from django.utils import simplejson
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from managers import AgendaManager, EventManager
+
+from agenda.managers import AgendaManager, EventManager
 
 import datetime
-import time 
+import time
 
-STATUS_CHOICES = (('1', _('Public')), 
-                  ('2', _('Registered Users')), 
-                  ('3', _('Restricted')), 
+STATUS_CHOICES = (('1', _('Public')),
+                  ('2', _('Registered Users')),
+                  ('3', _('Restricted')),
                   ('4', _('Private')))
 
 class Agenda(models.Model):
     name = models.CharField(max_length=100)
     public = models.BooleanField(default=False)
 
-    objects = AgendaManager()
-    
     #any model can have it's on agenda that's the owner
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+    objects = AgendaManager()
 
     def get_events(self, start, end):
         return Event.objects.filter(start__gt = start, 
@@ -40,8 +41,13 @@ class Agenda(models.Model):
     def __unicode__(self):
         return '%s' % (self.name)
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('agenda_view_date' (self.id,))
+
     class Meta:
         verbose_name = _('agenda')
+        unique_together = ('object_id', 'content_type')
 
 class Event(models.Model):
     '''Event class to make a simple event 
@@ -75,8 +81,16 @@ class Event(models.Model):
         else:
             return self.status == '1'
 
+    def can_be_shared_by(self, user):
+        if user.is_authenticated():
+            if self.status in (1, 2):
+                return True
+            elif self.status in (3,4):
+                return self.agenda.is_owner(user)
+
+    @models.permalink
     def get_absolute_url(self):
-        pass
+        return ('agenda_event_detail' (self.id,))
 
     def is_invited(self, user):
         if EventInvite.objects.get(to_user = user, event = self):
@@ -86,7 +100,7 @@ class Event(models.Model):
 
     def __unicode__(self):
         return self.title
-    
+
     def to_dict(self):
         dicc = {
                 'id': self.id,

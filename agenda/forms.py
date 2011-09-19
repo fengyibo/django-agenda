@@ -17,8 +17,7 @@ class AgendaForm(forms.ModelForm):
         model = Agenda 
 
 class EventInviteForm(forms.Form):
-    pass
-    #users = forms.MultipleModelChoiceField(queryset= User.objects.all())
+    users = forms.ModelMultipleChoiceField(queryset= User.objects.all())
 
 class AgendaAdminForm(forms.ModelForm):
     object_id = forms.ChoiceField(label=_('object'), choices=(('','----'),('1', '------')))
