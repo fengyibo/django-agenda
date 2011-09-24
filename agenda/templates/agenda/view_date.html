@@ -1,5 +1,6 @@
 {%extends "base.html" %}
-{%block extra_head%}
+{%load i18n %}
+{%block extra_head %}
 <link rel='stylesheet' type='text/css' href='{{STATIC_URL}}agenda/css/fullcalendar.css' />
 <script type='text/javascript' src='{{STATIC_URL}}agenda/js/jquery-1.4.3.min.js'></script>
 <script type='text/javascript' src='{{STATIC_URL}}agenda/js/fullcalendar.min.js'></script>
@@ -16,11 +17,6 @@
 			minTime: '8:00',
 			maxTime: '6:00pm',
 			defaultView: 'month',
-			dayNames: ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'],
-			dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
-			monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-			monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            contentHeight: 470,
 			header: {
 				left: 'prev,next today',
 				center: 'title',
@@ -28,32 +24,18 @@
 			},
 			editable: true,
 			events: window.location.href,		
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                day: 'Día',
-                week: 'Semana',
-            }
 		});	
 		
 	});
 </script>
 <style type='text/css'>
-
-	body {
-		margin-top: 40px;
-		text-align: center;
-		font-size: 13px;
-		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-		}
-
 	#calendar {
 		width: 850px;
 		margin: 0 auto;
 		}
-
 </style>
 {%endblock%}
 {%block content%}
 <div id='calendar'></div>
+</div>
 {%endblock%}

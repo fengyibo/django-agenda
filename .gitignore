@@ -4,3 +4,4 @@ base.db
 *.db
 settings_local.py
 static/apps/*
+django_agenda.egg-info/
